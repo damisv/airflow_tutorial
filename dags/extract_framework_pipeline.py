@@ -25,35 +25,36 @@ dag = DAG(
 
 release_id = '{{ dag_run.conf["release_id"] if dag_run else "default_release_id" }}'
 
-with TaskGroup("process_release") as process_release:
-    extract_task = PythonOperator(
-        task_id='extract_framework_info',
-        python_callable=extract_framework_info,
+with dag:  # Ensure all tasks are within the context of this DAG
+    with TaskGroup("process_release") as process_release:
+        extract_task = PythonOperator(
+            task_id='extract_framework_info',
+            python_callable=extract_framework_info,
+            op_kwargs={'release_id': release_id},
+            dag=dag,
+        )
+
+        enrich_task = PythonOperator(
+            task_id='enrich_with_companies',
+            python_callable=enrich_with_companies,
+            op_kwargs={'release_id': release_id},
+            dag=dag,
+        )
+
+        mapping_task = PythonOperator(
+            task_id='extract_mappings',
+            python_callable=extract_mappings,
+            op_kwargs={'release_id': release_id},
+            dag=dag,
+        )
+
+        extract_task >> enrich_task >> mapping_task
+
+    final_task = PythonOperator(
+        task_id='final_step',
+        python_callable=final_step,
         op_kwargs={'release_id': release_id},
         dag=dag,
     )
 
-    enrich_task = PythonOperator(
-        task_id='enrich_with_companies',
-        python_callable=enrich_with_companies,
-        op_kwargs={'release_id': release_id},
-        dag=dag,
-    )
-
-    mapping_task = PythonOperator(
-        task_id='extract_mappings',
-        python_callable=extract_mappings,
-        op_kwargs={'release_id': release_id},
-        dag=dag,
-    )
-
-    extract_task >> enrich_task >> mapping_task
-
-final_task = PythonOperator(
-    task_id='final_step',
-    python_callable=final_step,
-    op_kwargs={'release_id': release_id},
-    dag=dag,
-)
-
-process_release >> final_task
+    process_release >> final_task
