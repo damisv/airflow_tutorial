@@ -1,10 +1,10 @@
 dags:
   gitSync:
     enabled: true
-    repo: "https://github.com/apache/airflow.git"
+    repo: "https://github.com/damisv/airflow_tutorial.git"
     branch: "main"
     rev: "HEAD"
-    subPath: "airflow/example_dags"
+    subPath: "dags/"
     depth: 1
     wait: 60
     resources: {}
