@@ -1,0 +1,12 @@
+dags:
+  gitSync:
+    enabled: true
+    repo: "https://github.com/apache/airflow.git"
+    branch: "main"
+    rev: "HEAD"
+    subPath: "airflow/example_dags"
+    depth: 1
+    wait: 60
+    resources: {}
+    sshKeySecret: ""
+    knownHosts: ""
